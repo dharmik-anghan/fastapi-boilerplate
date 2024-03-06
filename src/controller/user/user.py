@@ -1,7 +1,7 @@
+from fastapi import HTTPException
 from sqlalchemy import or_
-from remote.db.database import db
-from remote.db.user.model import User
-from route.user.schema import RegisterUserSchema
+from src.remote.db.database import db
+from src.remote.db.user.model import User
 
 
 def registerUser(request_data):
@@ -22,7 +22,7 @@ def registerUser(request_data):
                 db.commit()
             else:
                 raise Exception("Email or Username has been taken")
-        user = RegisterUserSchema(
+        user = User(
             first_name=request_data.get("first_name"),
             last_name=request_data.get("last_name"),
             email=request_data.get("email"),
@@ -31,5 +31,15 @@ def registerUser(request_data):
         )
         db.add(user)
         db.commit()
-    except:
-        pass
+
+        return user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": f"Error occurred while processing the request: {str(e)}",
+                "status": "error",
+                "status_code": 400,
+            },
+        )

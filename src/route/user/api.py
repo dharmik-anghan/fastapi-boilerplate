@@ -1,6 +1,5 @@
 from fastapi import APIRouter, status, Request
-from controller.user.user import registerUser
-
+from src.controller.user.user import registerUser
 from src.route.user.schema import RegisterUserSchema, UserSchema
 
 
