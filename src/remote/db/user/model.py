@@ -1,6 +1,8 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, event    
 from src.remote.db.database import Base
 from datetime import datetime
+
+from utils.generate_verify_pwd import generate_hash_password
 
 class User(Base):
     __tablename__ = "users"
@@ -16,3 +18,16 @@ class User(Base):
     is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
+
+    def hash_password(self):
+        self.password = generate_hash_password(self.password)
+
+# Event listener to hash password before insertion
+@event.listens_for(User, 'before_insert')
+def hash_user_password(mapper, connection, target):
+    target.hash_password()
+
+# Event listener to hash password before update
+@event.listens_for(User, 'before_update')
+def hash_user_password(mapper, connection, target):
+    target.hash_password()
