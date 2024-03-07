@@ -1,6 +1,6 @@
 from typing import Optional, Union
 from pydantic import BaseModel, EmailStr
-
+from datetime import datetime
 
 class UserSchema(BaseModel):
     first_name: str
@@ -10,6 +10,11 @@ class UserSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class OutputUserSchema(UserSchema):
+    created_at: datetime
+    is_verified: bool
+    is_active: bool
 
 
 class RegisterUserSchema(UserSchema):
@@ -24,7 +29,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Union[str, None] = None
 
+
 class LoginUserSchema(BaseModel):
-    username: str
-    email: Optional[EmailStr] = None
+    username_or_email: str
     password: str
