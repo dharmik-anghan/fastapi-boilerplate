@@ -1,12 +1,13 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from sqlalchemy import or_
 from src.config import Config
 from src.remote.db.database import db
 from src.remote.db.user.model import User
-from src.route.user.schema import Token, TokenData
-from src.utils.authenticate import authenticate_user, create_access_token
-from jose import JWTError, jwt
+from src.route.user.schema import Token
+from src.utils.authenticate import authenticate_user, create_access_token, getCurrentUser
+
 from src.utils.authenticate import getUser
+from src.utils.generate_verify_pwd import verify_hash_password
 
 
 def registerUser(request_data):
@@ -69,26 +70,18 @@ def loginUser(request_data: dict):
         )
 
 
-def get_current_user(token: str):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(
-            token, Config.JWT_SECRET_KEY, algorithms=[Config.JWT_ALGORITHM]
-        )
-        username: str = payload.get("data")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-        user = getUser(username=token_data.username)
-        if user is None:
-            raise credentials_exception
-        return user
-    except JWTError:
-        raise credentials_exception
+def changePassword(token : str , request_data : dict) :
+    try :
+        user = getCurrentUser(token = token)
+
+        if verify_hash_password(request_data['old_password'] , user.get('passsword')  ) != True :
+            raise Exception(status_code=400,detail='Old password does not match!')
+        
+        if request_data['new_password'] != request_data['confirm_password'] :
+            raise Exception(status_code=400,detail='New Password and Confirm Password does not match!')
+        
+        user.password = request_data['new_password'] 
+        db.commit()        
     except Exception as e:
         raise HTTPException(
             status_code=400,
