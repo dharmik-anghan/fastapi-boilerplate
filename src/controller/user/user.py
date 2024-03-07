@@ -51,8 +51,8 @@ def getUser(request_data: str):
             db.query(User)
             .filter(
                 or_(
-                    User.email == request_data.get("email"),
-                    User.username == request_data.get("username"),
+                    User.email == request_data.get("username_or_email"),
+                    User.username == request_data.get("username_or_email"),
                 )
             )
             .first()
