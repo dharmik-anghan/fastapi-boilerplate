@@ -43,3 +43,31 @@ def registerUser(request_data):
                 "status_code": 400,
             },
         )
+
+
+def getUser(request_data: str):
+    try:
+        user = (
+            db.query(User)
+            .filter(
+                or_(
+                    User.email == request_data.get("email"),
+                    User.username == request_data.get("username"),
+                )
+            )
+            .first()
+        )
+        if user is None:
+            raise Exception("User Not Found")
+
+        return user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": f"Error occurred while processing the request: {str(e)}",
+                "status": "error",
+                "status_code": 400,
+            },
+        )
