@@ -32,7 +32,7 @@ def sendOtp(email : str):
             },
         )
     
-def  verifyOtp(email : str , otp : int):
+def  verifyOtp(email : str , otp : str):
     try: 
         user = get_user(username_or_email=email)
         otp_data = db.query(Otp).filter_by(email = email).first()
