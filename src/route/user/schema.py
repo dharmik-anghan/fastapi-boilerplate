@@ -2,6 +2,7 @@ from typing import Optional, Union
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
+
 class UserSchema(BaseModel):
     first_name: str
     last_name: str
@@ -10,6 +11,7 @@ class UserSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class OutputUserSchema(UserSchema):
     created_at: datetime
@@ -33,3 +35,9 @@ class TokenData(BaseModel):
 class LoginUserSchema(BaseModel):
     username_or_email: str
     password: str
+
+
+class ResetPasswordSchema(BaseModel):
+    old_password: str
+    new_password: str
+    confirm_password: str

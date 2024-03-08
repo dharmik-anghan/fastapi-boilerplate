@@ -1,12 +1,15 @@
-from fastapi import HTTPException
+from datetime import datetime
+from fastapi import HTTPException, Request
 from sqlalchemy import or_
-from src.config import Config
 from src.remote.db.database import db
 from src.remote.db.user.model import User
 from src.route.user.schema import Token
-from src.utils.authenticate import authenticate_user, create_access_token, getCurrentUser
-
-from src.utils.authenticate import getUser
+from src.utils.authenticate import (
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+)
+from src.utils.authenticate import get_user
 from src.utils.generate_verify_pwd import verify_hash_password
 
 
@@ -70,18 +73,22 @@ def loginUser(request_data: dict):
         )
 
 
-def changePassword(token : str , request_data : dict) :
-    try :
-        user = getCurrentUser(token = token)
+def resetPassword(user: User, request_data: dict):
+    try:
+        # breakpoint()
+        if (
+            verify_hash_password(request_data.get("old_password"), user.password)
+            != True
+        ):
+            raise Exception("Wrong password")
 
-        if verify_hash_password(request_data['old_password'] , user.get('passsword')  ) != True :
-            raise Exception(status_code=400,detail='Old password does not match!')
-        
-        if request_data['new_password'] != request_data['confirm_password'] :
-            raise Exception(status_code=400,detail='New Password and Confirm Password does not match!')
-        
-        user.password = request_data['new_password'] 
-        db.commit()        
+        if request_data.get("new_password") != request_data.get("confirm_password"):
+            raise Exception("New Password and Confirm Password does not match!")
+
+        user.password = request_data.get("new_password")
+        user.updated_at = datetime.utcnow()
+        db.commit()
+        return {"message": "Password has been reset successfully"}
     except Exception as e:
         raise HTTPException(
             status_code=400,
@@ -91,3 +98,8 @@ def changePassword(token : str , request_data : dict) :
                 "status_code": 400,
             },
         )
+
+
+def verifyToken(req: Request):
+    user = get_current_user(req.headers.get("Authorization"))
+    return user

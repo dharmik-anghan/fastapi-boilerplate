@@ -1,5 +1,4 @@
-from fastapi import HTTPException , status
-from jose import jwt
+from fastapi import HTTPException, status
 from sqlalchemy import or_
 from src.config import Config
 from src.remote.db.database import db
@@ -11,7 +10,7 @@ from src.route.user.schema import TokenData
 
 
 def authenticate_user(username_or_email: str, password: str):
-    user = getUser(username_or_email)
+    user = get_user(username_or_email)
 
     if not verify_hash_password(password, user.password):
         raise Exception("Username or Password is incorrect")
@@ -30,7 +29,7 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
-def getUser(username_or_email: str):
+def get_user(username_or_email: str):
     user = (
         db.query(User)
         .filter(
@@ -47,7 +46,7 @@ def getUser(username_or_email: str):
     return user
 
 
-def getCurrentUser(token: str):
+def get_current_user(token: str):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -61,7 +60,7 @@ def getCurrentUser(token: str):
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-        user = getUser(username=token_data.username)
+        user = get_user(username_or_email=token_data.username)
         if user is None:
             raise credentials_exception
         return user
@@ -76,4 +75,3 @@ def getCurrentUser(token: str):
                 "status_code": 400,
             },
         )
-
