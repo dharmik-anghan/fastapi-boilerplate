@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import or_
 from src.config import Config
 from src.remote.db.database import db
+from src.remote.db.otp.model import Otp
 from src.remote.db.user.model import User
 from src.utils.generate_verify_pwd import verify_hash_password
 from datetime import datetime, timedelta
@@ -75,3 +76,22 @@ def get_current_user(token: str):
                 "status_code": 400,
             },
         )
+
+
+def otp_verified(email: str, otp: str):
+    otp_data = db.query(Otp).filter_by(email=email).first()
+
+    if otp_data is None:
+        raise Exception("OTP has been expired")
+
+    current_time = datetime.utcnow()
+    expiry_time = otp_data.created_at + timedelta(
+        minutes=int(Config.OTP_EXPIRE_MINUTES)
+    )
+
+    if expiry_time > current_time:
+        if otp_data.otp != otp:
+            raise Exception("Invalid OTP")
+        return True
+    else:
+        raise Exception("OTP has been expired or invalid otp")

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
-from src.controller.otp.otp import sendOtp
+from src.controller.otp.otp import sendOtp, verify_account
 from src.controller.user.user import loginUser, registerUser, resetPassword, verifyToken
-from src.route.otp.schema import OTPSchema
+from src.route.otp.schema import OTPSchema, OTPVerification
 from src.route.user.schema import (
     LoginUserSchema,
     RegisterUserSchema,
@@ -59,10 +59,20 @@ def reset_password(
 
 
 @user_router.post("/sent-otp", status_code=201)
-def sent_otp_to_user(email: OTPSchema):
+def sent_otp_to_user(request_data: OTPSchema):
     """
     API: To reset password of user
     """
-    sendOtp(email.model_dump().get("email"))
+    message = sendOtp(request_data.model_dump())
 
-    return {"message" : "Email sent successfully"}
+    return message
+
+
+@user_router.put("/verifyaccount", status_code=201)
+def sent_otp_to_user(request_data: OTPVerification):
+    """
+    API: To verify_account password of user
+    """
+    message = verify_account(request_data.model_dump())
+
+    return message
