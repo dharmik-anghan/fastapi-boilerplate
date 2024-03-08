@@ -71,7 +71,7 @@ def sent_otp_to_user(request_data: OTPSchema):
 @user_router.put("/verifyaccount", status_code=201)
 def sent_otp_to_user(request_data: OTPVerification):
     """
-    API: To verify_account password of user
+    API: To verify_account of user
     """
     message = verify_account(request_data.model_dump())
 
