@@ -1,6 +1,10 @@
 import os
 import smtplib 
 from email.message import EmailMessage
+from random import randint
+
+def generate_OTP():
+    return randint(100000 , 999999)
 
 
 def send_otp_email(to_email, otp):
@@ -26,7 +30,7 @@ def send_otp_email(to_email, otp):
             # Send the email message
             server.send_message(message)
 
-        print("Email sent successfully")
+        return {"message" : "Email sent successfully"}
 
     except smtplib.SMTPException as e:
         print(f"Error sending email: {str(e)}")
