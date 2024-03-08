@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime , timedelta
 from fastapi import HTTPException
 from src.remote.db.otp.model import Otp
 from src.utils.authenticate import get_user
@@ -22,6 +22,35 @@ def sendOtp(email : str):
         db.commit()
         return message
         
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": f"Error occurred while processing the request: {str(e)}",
+                "status": "error",
+                "status_code": 400,
+            },
+        )
+    
+def  verifyOtp(email : str , otp : int):
+    try: 
+        user = get_user(username_or_email=email)
+        otp_data = db.query(Otp).filter_by(email = email).first()
+            
+        current_time = datetime.utcnow()
+        expiry_time = otp_data.created_at + timedelta(minutes=3)
+
+        if expiry_time < current_time :
+            raise Exception("OTP is Expire!")
+        elif otp_data.otp != otp :
+            raise Exception("Invalid OTP entered")
+        else:
+            db.delete(otp_data)
+
+            user.is_verified = True
+            db.commit()
+
+            return {"message" : "OTP verify successfully!"}
     except Exception as e:
         raise HTTPException(
             status_code=400,
